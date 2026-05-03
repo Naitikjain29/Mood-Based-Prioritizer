@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mood-Based Task Prioritizer | Antigravity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0c0f;
+      --surface: #13151a;
+      --surface2: #1c1f28;
+      --border: #2a2e3e;
+      --accent: #c8ff57;
+      --accent2: #57c8ff;
+      --text: #e8eaf0;
+      --muted: #6b7080;
+      --red: #ff5757;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 4rem;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(200,255,87,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 90%, rgba(87,200,255,0.05) 0%, transparent 60%);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header .brand {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      opacity: 0.8;
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      font-weight: 400;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      width: 100%;
+      max-width: 560px;
+      margin-bottom: 1.2rem;
+    }
+
+    /* ---- Energy Slider ---- */
+    .energy-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .energy-label {
+      font-size: 0.78rem;
+      font-family: 'Space Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .energy-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .energy-value span {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .energy-mood {
+      font-size: 0.8rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--accent2);
+      letter-spacing: 0.05em;
+    }
+
+    .slider-wrap {
+      position: relative;
+      margin: 0.5rem 0 0.8rem;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--bg);
+      box-shadow: 0 0 0 2px var(--accent);
+      transition: transform 0.15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ---- Add Task Form ---- */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      flex: 1;
+    }
+
+    label {
+      font-size: 0.7rem;
+      font-family: 'Space Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    input[type=text], select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.93rem;
+      padding: 0.6rem 0.8rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    input[type=text]:focus, select:focus { border-color: var(--accent); }
+
+    select option { background: #1c1f28; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.04em;
+      padding: 0.65rem 1.2rem;
+      transition: all 0.18s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0b0c0f;
+    }
+
+    .btn-primary:hover { background: #d8ff7a; transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-size: 0.78rem;
+      padding: 0.4rem 0.9rem;
+    }
+
+    .btn-ghost:hover { border-color: var(--red); color: var(--red); }
+
+    /* ---- Tasks ---- */
+    .tasks-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .tasks-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    #task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      line-height: 1.8;
+    }
+
+    .task-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: border-color 0.2s, opacity 0.2s;
+      animation: slideIn 0.25s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .task-item.match    { border-color: var(--accent); }
+    .task-item.close    { border-color: rgba(200,255,87,0.3); }
+    .task-item.mismatch { opacity: 0.45; }
+
+    .task-cost-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .task-item.match .task-cost-badge    { background: var(--accent); color: #0b0c0f; border-color: var(--accent); }
+    .task-item.mismatch .task-cost-badge { color: var(--muted); }
+
+    .task-name {
+      flex: 1;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .task-fit {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .task-item.match .task-fit    { color: var(--accent); }
+    .task-item.close .task-fit    { color: var(--accent2); }
+
+    .task-delete {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+
+    .task-delete:hover { color: var(--red); }
+
+    footer {
+      margin-top: auto;
+      padding-top: 3rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">Antigravity</div>
+    <h1>Mood-Based Prioritizer</h1>
+    <p>Match your tasks to your current energy.</p>
+  </header>
+
+  <!-- Energy Slider Card -->
+  <div class="card">
+    <div class="energy-header">
+      <div>
+        <div class="energy-label">Energy Level</div>
+        <div class="energy-value" id="energy-display">5 <span>/ 10</span></div>
+      </div>
+      <div class="energy-mood" id="energy-mood">Moderate Flow</div>
+    </div>
+    <div class="slider-wrap">
+      <input type="range" id="energy-slider" min="1" max="10" value="5" />
+    </div>
+    <div class="slider-labels">
+      <span>Comatose</span>
+      <span>God Mode</span>
+    </div>
+  </div>
+
+  <!-- Add Task Card -->
+  <div class="card">
+    <div class="form-group">
+      <div class="field">
+        <label for="task-name">Task Name</label>
+        <input type="text" id="task-name" placeholder="What do you need to do?" />
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="task-cost">Energy Cost</label>
+          <select id="task-cost">
+            <option value="1">1 – Minimal</option>
+            <option value="2">2 – Very Low</option>
+            <option value="3">3 – Low</option>
+            <option value="4">4 – Light</option>
+            <option value="5" selected>5 – Medium</option>
+            <option value="6">6 – Steady</option>
+            <option value="7">7 – High</option>
+            <option value="8">8 – Demanding</option>
+            <option value="9">9 – Intense</option>
+            <option value="10">10 – God Level</option>
+          </select>
+        </div>
+        <div class="field" style="justify-content: flex-end;">
+          <label style="opacity:0">add</label>
+          <button class="btn btn-primary" id="add-btn">+ Add Task</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task List Card -->
+  <div class="card">
+    <div class="tasks-header">
+      <span class="tasks-title">Your Tasks</span>
+      <button class="btn btn-ghost" id="clear-btn">Clear All</button>
+    </div>
+    <div id="task-list">
+      <div class="empty-state" id="empty-msg">
+        No tasks yet.<br/>Add one above to get started.
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2026 Antigravity | Vibe Coding</footer>
+
+  <script>
+    const MOODS = [
+      '', // index 0 unused
+      'Comatose',
+      'Barely Alive',
+      'Low Power Mode',
+      'Warming Up',
+      'Moderate Flow',
+      'Getting There',
+      'High Focus',
+      'Locked In',
+      'Full Send',
+      'God Mode'
+    ];
+
+    const slider  = document.getElementById('energy-slider');
+    const display = document.getElementById('energy-display');
+    const moodEl  = document.getElementById('energy-mood');
+    const taskList = document.getElementById('task-list');
+    const emptyMsg = document.getElementById('empty-msg');
+
+    let tasks = [];
+
+    function getEnergy() { return parseInt(slider.value); }
+
+    function fitLabel(cost, energy) {
+      const diff = Math.abs(cost - energy);
+      if (diff === 0) return 'Perfect Match';
+      if (diff <= 1) return 'Close Match';
+      if (diff <= 2) return 'Doable';
+      return cost > energy ? 'Too Draining' : 'Too Easy';
+    }
+
+    function fitClass(cost, energy) {
+      const diff = Math.abs(cost - energy);
+      if (diff <= 1) return 'match';
+      if (diff <= 2) return 'close';
+      return 'mismatch';
+    }
+
+    function render() {
+      const energy = getEnergy();
+      display.innerHTML = `${energy} <span>/ 10</span>`;
+      moodEl.textContent = MOODS[energy];
+
+      // Update slider fill
+      const pct = ((energy - 1) / 9) * 100;
+      slider.style.background = `linear-gradient(to right, var(--accent) ${pct}%, var(--border) ${pct}%)`;
+
+      // Render tasks
+      if (tasks.length === 0) {
+        taskList.innerHTML = `<div class="empty-state" id="empty-msg">No tasks yet.<br/>Add one above to get started.</div>`;
+        return;
+      }
+
+      // Sort: best match first
+      const sorted = [...tasks].sort((a, b) => {
+        return Math.abs(a.cost - energy) - Math.abs(b.cost - energy);
+      });
+
+      taskList.innerHTML = sorted.map(t => `
+        <div class="task-item ${fitClass(t.cost, energy)}" data-id="${t.id}">
+          <div class="task-cost-badge">${t.cost}</div>
+          <div class="task-name">${escapeHtml(t.name)}</div>
+          <div class="task-fit">${fitLabel(t.cost, energy)}</div>
+          <button class="task-delete" data-id="${t.id}" title="Delete">✕</button>
+        </div>
+      `).join('');
+
+      taskList.querySelectorAll('.task-delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+          tasks = tasks.filter(t => t.id !== btn.dataset.id);
+          render();
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    slider.addEventListener('input', render);
+
+    document.getElementById('add-btn').addEventListener('click', () => {
+      const nameEl = document.getElementById('task-name');
+      const costEl = document.getElementById('task-cost');
+      const name = nameEl.value.trim();
+      if (!name) { nameEl.focus(); return; }
+      tasks.push({ id: Date.now().toString(), name, cost: parseInt(costEl.value) });
+      nameEl.value = '';
+      render();
+    });
+
+    document.getElementById('task-name').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('add-btn').click();
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      if (tasks.length && confirm('Clear all tasks?')) { tasks = []; render(); }
+    });
+
+    render();
+  </script>
+</body>
+</html>

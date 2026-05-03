@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood-Based Task Prioritizer | Vibe Coding</title>
+    <meta name="description" content="Prioritize your tasks based on your current energy levels with this aesthetic, glassmorphism task manager.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glow-blob glow-1"></div>
+    <div class="glow-blob glow-2"></div>
+
+    <main class="container">
+        <header class="header">
+            <h1>Energy Focus</h1>
+            <p style="color: var(--text-muted); font-weight: 500;">Match your tasks to your vibe.</p>
+        </header>
+
+        <section class="energy-box">
+            <div class="energy-label-container">
+                <div class="energy-info">
+                    <div class="energy-title">Current Energy</div>
+                    <div id="energy-status" class="energy-status">Focused & Ready</div>
+                </div>
+                <div id="energy-display" class="energy-display">
+                    <span id="energy-number" class="energy-value">5</span>
+                </div>
+            </div>
+            
+            <div class="slider-container">
+                <input type="range" id="energy-slider" min="1" max="10" value="5" step="1">
+            </div>
+        </section>
+
+        <section class="input-section">
+            <input type="text" id="task-input" class="task-input" placeholder="What's on your mind?" autocomplete="off">
+            <select id="cost-select" class="cost-select">
+                <option value="1">Cost: 1</option>
+                <option value="2">Cost: 2</option>
+                <option value="3">Cost: 3</option>
+                <option value="4">Cost: 4</option>
+                <option value="5" selected>Cost: 5</option>
+                <option value="6">Cost: 6</option>
+                <option value="7">Cost: 7</option>
+                <option value="8">Cost: 8</option>
+                <option value="9">Cost: 9</option>
+                <option value="10">Cost: 10</option>
+            </select>
+            <button id="add-task-btn" class="add-btn">Add Task</button>
+        </section>
+
+        <div id="task-list" class="task-list">
+            <!-- Tasks will be injected here -->
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
